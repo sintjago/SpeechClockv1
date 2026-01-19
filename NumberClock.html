@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Number Counter with Loop</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #e0e0e0;
+            font-family: Arial, sans-serif;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            grid-template-rows: repeat(6, 50px);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .grid-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            background-color: #ddd;
+            font-size: 1.5rem;
+            color: #333;
+            cursor: pointer;
+        }
+        .highlight {
+            background-color: #333;
+            color: #fff;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .language-controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .controls button {
+            padding: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #333;
+        }
+        .color-schemes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 5px solid;
+        }
+        .instructions {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- Number Grid -->
+    <div class="grid-container" id="grid">
+        <!-- Grid items will be dynamically generated -->
+    </div>
+
+    <!-- Pause instruction -->
+    <div class="instructions">Pause to move the playhead.</div>
+    
+    <!-- Control Buttons -->
+    <div class="controls">
+        <button onclick="toggleCounter()" id="toggleButton">Pause</button>
+    </div>
+
+    <!-- Language Selection Grid -->
+    <div class="language-controls">
+        <button onclick="setLanguage('en-US')">English</button>
+        <button onclick="setLanguage('es-ES')">Spanish</button>
+        <button onclick="setLanguage('ru-RU')">Russian</button>
+        <button onclick="setLanguage('ja-JP')">Japanese</button>
+        <button onclick="setLanguage('fr-FR')">French</button>
+        <button onclick="setLanguage('de-DE')">German</button>
+        <button onclick="setLanguage('it-IT')">Italian</button>
+        <button onclick="setLanguage('pt-BR')">Portuguese</button>
+        <button onclick="setLanguage('nl-NL')">Dutch</button>
+        <button onclick="setLanguage('ko-KR')">Korean</button>
+        <button onclick="setLanguage('zh-CN')">Mandarin</button>
+        <button onclick="setLanguage('hi-IN')">Hindi</button>
+    </div>
+
+    <!-- Color Scheme Selection -->
+    <div class="color-schemes">
+        <div class="color-option" style="background-color: #00274C; border-color: #FFCB05;" onclick="setColorScheme('#00274C', '#FFCB05')"></div>
+        <div class="color-option" style="background-color: #FFCB05; border-color: #00274C;" onclick="setColorScheme('#FFCB05', '#00274C')"></div>
+        <div class="color-option" style="background-color: #1F77B4; border-color: #FF7F0E;" onclick="setColorScheme('#1F77B4', '#FF7F0E')"></div>
+        <div class="color-option" style="background-color: #FF7F0E; border-color: #1F77B4;" onclick="setColorScheme('#FF7F0E', '#1F77B4')"></div>
+        <div class="color-option" style="background-color: #8E44AD; border-color: #3498DB;" onclick="setColorScheme('#8E44AD', '#3498DB')"></div>
+        <div class="color-option" style="background-color: #3498DB; border-color: #8E44AD;" onclick="setColorScheme('#3498DB', '#8E44AD')"></div>
+        <div class="color-option" style="background-color: #27AE60; border-color: #E74C3C;" onclick="setColorScheme('#27AE60', '#E74C3C')"></div>
+        <div class="color-option" style="background-color: #E74C3C; border-color: #27AE60;" onclick="setColorScheme('#E74C3C', '#27AE60')"></div>
+    </div>
+
+    <script>
+        let interval = 2000; // Slowed down the interval for better pronunciation
+        let timer;
+        let isPaused = false;
+        let currentLanguage = 'en-US';
+        let count = 1;
+
+        // Set language function
+        function setLanguage(language) {
+            currentLanguage = language;
+        }
+
+        // Set color scheme
+        function setColorScheme(background, text) {
+            document.body.style.backgroundColor = background;
+            document.querySelectorAll('.grid-item').forEach(item => {
+                item.style.backgroundColor = '#ddd';
+                item.style.color = '#333';
+            });
+            document.querySelectorAll('.highlight').forEach(item => {
+                item.style.backgroundColor = text;
+                item.style.color = background;
+            });
+        }
+
+        // Speech function
+        function speak(text, rate = 1) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = currentLanguage;
+                msg.rate = rate;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        // Generate the grid and handle selection
+        function generateGrid() {
+            const grid = document.getElementById('grid');
+            for (let i = 1; i <= 60; i++) {
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('grid-item');
+                gridItem.id = `grid-${i}`;
+                gridItem.textContent = i < 10 ? `0${i}` : i;
+                gridItem.addEventListener('click', () => {
+                    if (isPaused) {
+                        speak(gridItem.textContent);
+                        highlightNumber(i);
+                    }
+                });
+                grid.appendChild(gridItem);
+            }
+        }
+
+        // Highlight the current number and move to the next
+        function highlightNumber(currentNumber) {
+            document.querySelectorAll('.grid-item').forEach(item => item.classList.remove('highlight'));
+            count = currentNumber || count;
+            document.getElementById(`grid-${count}`).classList.add('highlight');
+        }
+
+        // Update the counter and highlight
+        function updateCounter() {
+            highlightNumber(count);
+            speak(count < 10 ? `0${count}` : count, 1.5);
+            count++;
+            if (count > 60) count = 1;
+        }
+
+        // Start, pause
+        function toggleCounter() {
+            if (isPaused) {
+                startCounter();
+                document.getElementById('toggleButton').textContent = 'Pause';
+            } else {
+                clearInterval(timer);
+                document.getElementById('toggleButton').textContent = 'Play';
+            }
+            isPaused = !isPaused;
+        }
+
+        // Initialize and update the counter based on interval
+        function startCounter() {
+            clearInterval(timer);
+            timer = setInterval(updateCounter, interval);
+            updateCounter();
+        }
+
+        // Generate the grid and start the counter on page load
+        generateGrid();
+        startCounter();
+    </script>
+</body>
+</html>
